@@ -7,8 +7,8 @@
 <body>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form }}
-    <button type="submit">Upload</button>
+    <input type="file" name="excel_file">
+    <button type="submit">Import</button>
 </form>
 </body>
 </html>
