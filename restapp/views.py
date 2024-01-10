@@ -124,8 +124,14 @@ def import_from_excel(request):
             'content': external_api_response.json(),
         }
 
+        # if external_api_response.status_code == 200:
+        #     return redirect('success')  # Replace with your actual URL name or path
+
+
         # Return the response as a JSON object
-        return JsonResponse(response_data, safe=False)
+        # return render(request, 'success.html', response_data)
+
+        return redirect('success')
 
     return render(request, 'upload_file.html')
 
@@ -276,35 +282,35 @@ def upload_file(request):
 from rest_framework.renderers import JSONRenderer
 def success(request):
     # Add any success message or redirection logic here
-    w = YoursDataModel.objects.all()
+    # w = YoursDataModel.objects.all()
 
-    v = YourDataModelSerializer(w, many=True).data
+    # v = YourDataModelSerializer(w, many=True).data
 
-    data = json.dumps(v)
+    # data = json.dumps(v)
 
     # Define the URL for the external API
-    external_api_url = "http://127.0.0.1:8000/endpoint/"
+    # external_api_url = "http://127.0.0.1:8000/endpoint/"
 
     # Set headers for the external API request
-    external_api_headers = {
-        # 'Authorization': 'Token aXBvdGVrYS1wZXJjZW50YWdlLXBheW1lbnQ6OzNpSGI3aTswNjRd',
-        'Content-Type': 'application/json'
-    }
+    # external_api_headers = {
+    #     # 'Authorization': 'Token aXBvdGVrYS1wZXJjZW50YWdlLXBheW1lbnQ6OzNpSGI3aTswNjRd',
+    #     'Content-Type': 'application/json'
+    # }
 
     # Make a POST request to the external API
-    external_api_response = requests.post(
-        external_api_url,
-        headers=external_api_headers,
-        # verify=False,
-        data=data
-    )
+    # external_api_response = requests.post(
+    #     external_api_url,
+    #     headers=external_api_headers,
+    #     # verify=False,
+    #     data=data
+    # )
 
     # print(data, external_api_response)
 
     # Return the response from the external API
-    return JsonResponse(external_api_response)
+    # return JsonResponse(external_api_response)
 
-    # return render(request, 'success.html')
+    return render(request, 'success.html')
 
 
 from django.http import HttpResponse
