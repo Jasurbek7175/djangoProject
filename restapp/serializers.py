@@ -1,11 +1,14 @@
 from rest_framework import serializers
 from .models import FinanceModel, YoursDataModel
 from rest_framework.decorators import api_view
+
+
 class YourDataModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinanceModel
         # fields = '__all__'
         exclude = ['id', 'created_at']
+
 
 class ModelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,3 +27,14 @@ class ModelSerializer(serializers.ModelSerializer):
 #
 #     # Return the serialized data as JSON response
 #     return Response(serialized_data)
+
+
+from rest_framework import serializers
+from .models import UploadedFile
+
+class FileUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UploadedFile
+        fields = ('file', 'uploaded_on',)
+
+

@@ -63,6 +63,7 @@ from openpyxl import load_workbook
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
+
 def import_from_excel(request):
     if request.method == 'POST':
         excel_file = request.FILES['excel_file']
@@ -76,7 +77,6 @@ def import_from_excel(request):
 
         # Create a list to store all instances
         instances = []
-
 
         for row in ws.iter_rows(min_row=2, values_only=True):
             try:
@@ -94,7 +94,6 @@ def import_from_excel(request):
                 instances.append(a)
             except Exception as e:
                 print(f"Error processing row {row}: {e}")
-
 
         # Serialize all instances
         serializer = YourDataModelSerializer(instances, many=True)
@@ -126,7 +125,6 @@ def import_from_excel(request):
 
         # if external_api_response.status_code == 200:
         #     return redirect('success')  # Replace with your actual URL name or path
-
 
         # Return the response as a JSON object
         # return render(request, 'success.html', response_data)
@@ -184,7 +182,6 @@ def import_from_excel(request):
 #     return render(request, 'upload_file.html')
 
 
-
 # def import_from_excel(request):
 #     if request.method == 'POST':
 #         excel_file = request.FILES['excel_file']
@@ -229,8 +226,6 @@ def import_from_excel(request):
 #     return render(request, 'upload_file.html')
 
 
-
-
 def handle_uploaded_file(file):
     df = pd.read_excel(file)
     for index, row in df.iterrows():
@@ -267,8 +262,6 @@ def handle_uploaded_file(file):
         # return JsonResponse(external_api_response.json())
 
 
-
-
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -279,7 +272,10 @@ def upload_file(request):
         form = UploadFileForm()
     return render(request, 'upload_file.html', {'form': form})
 
+
 from rest_framework.renderers import JSONRenderer
+
+
 def success(request):
     # Add any success message or redirection logic here
     # w = YoursDataModel.objects.all()
@@ -483,3 +479,63 @@ class ModelAPIView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'status': 'Data successfully saved'}, status=status.HTTP_201_CREATED)
+
+
+from rest_framework import status
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .serializers import FileUploadSerializer
+
+
+class FileUploadAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    serializer_class = FileUploadSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            # you can access the file like this from serializer
+            # uploaded_file = serializer.validated_data["file"]
+            serializer.save()
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+from .models import UploadedFile
+
+
+def uploadpdf(request):
+    file = UploadedFile.objects.all()
+    templates = 'success.html'
+    context = {
+        'file': file
+    }
+    return render(request, template_name=templates, context=context)
+
+import os
+from django.shortcuts import get_object_or_404
+from wsgiref.util import FileWrapper
+
+def download_file(request, file_id):
+    uploaded_file = get_object_or_404(UploadedFile, pk=file_id)
+
+    # Get the file path
+    file_path = os.path.join(settings.MEDIA_ROOT, str(uploaded_file.file))
+
+    # Open the file for reading
+    with open(file_path, 'rb') as file:
+        response = HttpResponse(FileWrapper(file), content_type='application/octet-stream')
+
+        # Set the content-disposition header for the browser to download the file
+        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+
+        return response
