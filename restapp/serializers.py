@@ -6,8 +6,8 @@ from rest_framework.decorators import api_view
 class YourDataModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinanceModel
-        # fields = '__all__'
-        exclude = ['id', 'created_at']
+        fields = '__all__'
+        # exclude = ['id', 'created_at', 'city', 'contract_date', 'age']
 
 
 class ModelSerializer(serializers.ModelSerializer):

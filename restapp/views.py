@@ -8,6 +8,49 @@ from .serializers import ModelSerializer
 from django.core.serializers import serialize
 from datetime import datetime
 from django.utils import timezone
+from rest_framework.views import APIView
+from rest_framework import response
+
+from django.shortcuts import render, HttpResponse
+from translate import Translator
+
+
+# Create your views here.
+
+def translation(request):
+    if request.method == "POST":
+        text = request.POST["translate"]
+        language = request.POST["language"]
+        translator = Translator(to_lang=language)
+        translation = translator.translate(text)
+        return HttpResponse(translation)
+    return render(request, "index.html")
+
+class LoanInfoView(APIView):
+    def get(self, request, *args, **kwargs):
+        serializer = YourDataModelSerializer(data=request.query_params)
+        if serializer.is_valid():
+            name = serializer.validated_data['name']
+            age = serializer.validated_data['age']
+            print('1515151515151', age)
+            person = YoursDataModel.objects.get(name=name).values()
+            # Check if name is "Maruf" and age is 119
+            if person:
+                # Assuming there is a person in your database with name "Maruf" and age 119
+                serializer = YourDataModelSerializer(person, many=True)
+                return Response(serializer.data)
+            else:
+                return Response({'error': 'Invalid parameters'}, status=400)
+        else:
+            return Response(serializer.errors, status=400)
+
+
+from .tasks import slow_func
+
+
+def index(request):
+    slow_func.delay(13244515)
+    return HttpResponse('Site is working!')
 
 
 def get_objects_in_month(year):
@@ -21,43 +64,6 @@ def get_objects_in_month(year):
 
     return objects_in_month
 
-
-# def data_send(serialized_data):
-#     objects = ModelSerializer(YoursDataModel.objects.all(), many=True)
-#
-#     queryset = YoursDataModel.objects.all()
-#     serializer = ModelSerializer(queryset, many=True)
-#     print(serializer)
-#     serialized_data = serializer.data
-#
-#     url = "http://127.0.0.1:8000/endpoint/"
-#
-#     # serialized_people = serialize('json', data)
-#
-#     # deserialized_data = json.loads(serialized_people)
-#
-#     queryset = YoursDataModel.objects.all()
-#
-#     print(queryset)
-#
-#     # Serialize the queryset to JSON
-#     serialized_data = serialize('json', queryset)
-#
-#     # print(deserialized_data)
-#
-#     for k in queryset:
-#         print(k, type(k))
-#
-#     payload = json.dumps([
-#         serialized_data
-#     ])
-#     headers = {
-#         'Content-Type': 'application/json'
-#     }
-#
-#     response = requests.post(url, headers=headers, data=serializer)
-#
-#     return HttpResponse(response)
 
 from openpyxl import load_workbook
 from django.conf import settings
@@ -493,8 +499,14 @@ class FileUploadAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     serializer_class = FileUploadSerializer
 
+    def get(self, request):
+        a = UploadedFile.objects.all()
+        b = FileUploadSerializer(a, many=True)
+        return Response(b.data)
+
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data, many=True)
+        print(serializer)
         if serializer.is_valid():
             # you can access the file like this from serializer
             # uploaded_file = serializer.validated_data["file"]
@@ -521,9 +533,11 @@ def uploadpdf(request):
     }
     return render(request, template_name=templates, context=context)
 
+
 import os
 from django.shortcuts import get_object_or_404
 from wsgiref.util import FileWrapper
+
 
 def download_file(request, file_id):
     uploaded_file = get_object_or_404(UploadedFile, pk=file_id)
